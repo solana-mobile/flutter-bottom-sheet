@@ -14,4 +14,15 @@ class BottomSheetActivity: FlutterActivity() {
     override fun getBackgroundMode(): BackgroundMode {
         return BackgroundMode.transparent
     }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val windowLayoutParams = window.attributes
+        windowLayoutParams.gravity = Gravity.BOTTOM
+//        windowLayoutParams.flags =
+//            windowLayoutParams.flags and WindowManager.LayoutParams.FLAG_DIM_BEHIND
+        window.attributes = windowLayoutParams
+//        window.setDecorFitsSystemWindows(false)
+    }
 }
