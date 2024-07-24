@@ -30,9 +30,11 @@ class BottomSheetContent extends StatefulWidget {
 class _BottomSheetPageState extends State<BottomSheetContent> with SingleTickerProviderStateMixin {
   Offset _offset = const Offset(0, 1);
   bool _secondScreen = false;
+
   @override
   void initState() {
     super.initState();
+    _offset = const Offset(0, 1);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
         _offset = Offset.zero;
@@ -44,74 +46,96 @@ class _BottomSheetPageState extends State<BottomSheetContent> with SingleTickerP
     SystemNavigator.pop(); // This will finish the Android activity
   }
 
+  void _animateClose() {
+    setState(() {
+      _offset = const Offset(0, 1);
+    });
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return AnimatedSlide(
-      offset: _offset,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeOut,
-      child: BottomSheet(
-        enableDrag: false,
-        // animationController: _controller,
-        onClosing: _finishActivity,
-        builder: (context) {
-          return Container(
-            margin: const EdgeInsets.only(
-              top: 64,
-              bottom: 32,
-              left: 24,
-              right: 24
+  Widget build(BuildContext contenxt) {
+    return Stack(
+      children: <Widget>[
+        GestureDetector(
+          onTap: _animateClose,
+          child: Container(
+            color: Colors.transparent,
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: AnimatedSlide(
+            offset: _offset,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            onEnd: () {
+              if (_offset.dy == 1) _finishActivity();
+            },
+            child: BottomSheet(
+              enableDrag: true,
+              animationController: BottomSheet.createAnimationController(this),
+              onClosing: _animateClose,
+              builder: (context) {
+                return Container(
+                  margin: const EdgeInsets.only(
+                      top: 64,
+                      bottom: 32,
+                      left: 24,
+                      right: 24
+                  ),
+                  child: AnimatedCrossFade(
+                    duration: const Duration(milliseconds: 300),
+                    crossFadeState: _secondScreen
+                        ? CrossFadeState.showSecond
+                        : CrossFadeState.showFirst,
+                    firstChild: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text(
+                              'Hello Flutter Bottom Sheet!',
+                              style: Theme.of(context).textTheme.headlineMedium,
+                            ),
+                            TextButton(
+                                onPressed: () => setState(() => _secondScreen = true),
+                                child: const Text("Next")
+                            )
+                          ],
+                        )
+                      ]
+                    ),
+                    secondChild: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            Text(
+                              'Next Page',
+                              style: Theme.of(context).textTheme.headlineMedium,
+                            ),
+                            const Text(
+                              'More Text',
+                            ),
+                            TextButton(
+                                onPressed: _animateClose,
+                                child: const Text("Close")
+                            )
+                          ],
+                        )
+                      ]
+                    ),
+                  )
+                );
+              }
             ),
-            child: AnimatedCrossFade(
-              duration: const Duration(milliseconds: 300),
-              crossFadeState: _secondScreen
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              firstChild: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        'Hello Flutter Bottom Sheet!',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      TextButton(
-                        onPressed: () => setState(() => _secondScreen = true),
-                        child: const Text("Next")
-                      )
-                    ],
-                  )
-                ]
-              ),
-              secondChild: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        'Next Page',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const Text(
-                        'More Text',
-                      ),
-                      TextButton(
-                          onPressed: _finishActivity,
-                          child: const Text("Close")
-                      )
-                    ],
-                  )
-                ]
-              ),
-            )
-          );
-        }
-      ),
+          )
+        ),
+      ]
     );
   }
 }
